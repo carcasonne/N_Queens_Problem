@@ -1,4 +1,3 @@
-import net.sf.javabdd.*;
 
 public class Group17Logic implements IQueensLogic
 {
@@ -18,7 +17,24 @@ public class Group17Logic implements IQueensLogic
 
     @Override
     public void insertQueen(int column, int row) {
-        BDDFactory factory = JFactory.init(20,20); 
-        
+        if (this.board[column][row] == 0) {
+            for(int i = 0; i < this.size; i++){
+                this.board[column][i] = -1;
+                this.board[i][row] = -1;
+                if (column + i < size && row + i < size){
+                    this.board[column + i][row + i] = -1;
+                }
+                if (column - i >= 0 && row - i >= 0){
+                    this.board[column - i][row - i] = -1;
+                }
+                if (column - i >= 0 && row + i < size ){
+                    this.board[column - i][row + i] = -1;
+                }
+                if(column + i < size && row - i >= 0){
+                    this.board[column + i][row - i] = -1;
+                }
+            }
+            this.board[column][row] = 1;
+        }
     }
 }
