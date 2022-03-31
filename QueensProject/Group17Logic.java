@@ -9,7 +9,7 @@ public class Group17Logic implements IQueensLogic
     private int size;		// Size of quadratic game board (i.e. size = #rows = #columns)
     private int[][] board;	// Content of the board. Possible values: 0 (empty), 1 (queen), -1 (no queen allowed)
     private BDD[] variables; //The BDD [] with the amount of variables
-    private final BDDFactory factory = JFactory.init(20000000, 2000000); //The BDD Factory to initialize nodes and cache
+    private final BDDFactory factory = JFactory.init(5_000_000, 500_000); //The BDD Factory to initialize nodes and cache
     private BDD True = factory.one(); // the True BDD - makes life easier to define as a field
     private BDD False = factory.zero(); //the False BDD - makes life easier to define as a field
     BDD root;
@@ -72,6 +72,9 @@ public class Group17Logic implements IQueensLogic
         for(int i = 0; i<positions.length; i++){
             if(positions[i] == 0){
                 this.board[getColumnOfIndex(i)][getRowOfIndex(i)] = -1;
+            } else if (positions[i] == 1 && root.allsat().size() == 1) {
+                //Auto-fill the rest of the queens if there is only one option left
+                this.board[getColumnOfIndex(i)][getRowOfIndex(i)] = 1;
             }
         }
     }
@@ -166,5 +169,7 @@ public class Group17Logic implements IQueensLogic
         root = root.restrict(queen);
         updatePositions();
         this.board[column][row] = 1;
+
+
     }
 }
