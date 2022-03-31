@@ -8,11 +8,13 @@ public class Group17Logic implements IQueensLogic
 {
     private int size;		// Size of quadratic game board (i.e. size = #rows = #columns)
     private int[][] board;	// Content of the board. Possible values: 0 (empty), 1 (queen), -1 (no queen allowed)
-    private BDD[] variables;
-    private final BDDFactory factory = JFactory.init(2000000, 200000);
-    private BDD True = factory.one(); //makes life easier to define as a field
-    private BDD False = factory.zero();
+    private BDD[] variables; //The BDD [] with the amount of variables
+    private final BDDFactory factory = JFactory.init(20000000, 2000000); //The BDD Factory to initialize nodes and cache
+    private BDD True = factory.one(); // the True BDD - makes life easier to define as a field
+    private BDD False = factory.zero(); //the False BDD - makes life easier to define as a field
     BDD root;
+
+    //The function for initializing the board. It takes the board size as a parameter.
 
     public void initializeBoard(int size) {
         this.size = size;
@@ -30,10 +32,10 @@ public class Group17Logic implements IQueensLogic
         // Since root is initialzied to True,
         // this means the BDD's we apply the AND operator with must also be true for root to be true.
         // So the entire tree is only true if each and every of the constraints are true
-        root = root.and(verticalConstraint());
+        root = root.and(verticalAndHorisontalConstraint());
         //root = root.and(horisontalConstraint());
-        //root = root.and(queenInEveryColumnConstraint());
-        //root = root.and(diagonalConstraint());
+        root = root.and(queenInEveryRowConstraint());
+        root = root.and(diagonalConstraint());
 
         System.out.println("is the logic unsatisfiable (always false)? : " + root.isZero());
         System.out.println("is the logic always true? : " + root.isOne());
@@ -41,38 +43,38 @@ public class Group17Logic implements IQueensLogic
         updatePositions();
     }
 
+    /**
+    * @return the current board
+    */
     public int[][] getBoard() {
         return board;
     }
 
-
-
-//TODO: Ændre
-    private int[] getAllowedPositions(){
-        int[] allowedPositions = new int[size * size];
-        //allsat() "Finds all satisfying variable assignments."
-        //allsat() has no implementation in the jar file, it is literally just a generic list with no type??????
+    /**
+     * @return positions with values indicating if it is possible to place a queen.
+     */
+    private int[] getPositions(){
+        int[] positions = new int[size * size];
+        //allsat() finds all the possible configurations given the currently assigned variables
         List<byte[]> configs = new ArrayList<byte[]>(root.allsat());
-        for(byte[] by : configs){
-            for(byte i = 0; i<by.length; i++){
-                if(by[i] != 0){
-                    allowedPositions[i] = 1;
-                }
+        for(byte[] positionsInSpecificConfig : configs){
+            for(byte i = 0; i<positionsInSpecificConfig.length; i++){
+                if (positionsInSpecificConfig[i] != 0)
+                    positions[i] = 1;
             }
         }
-        return allowedPositions;
+        return positions;
     }
 
-   private void updatePositions(){
-       int[] allowedPositions = getAllowedPositions();
-       for(int i = 0; i<allowedPositions.length; i++){
-           if(allowedPositions[i] == 0){
-               this.board[getColumnOfIndex(i)][getRowOfIndex(i)] = -1;
-           }
-       }
 
-
-   }
+    private void updatePositions(){
+        int[] positions = getPositions();
+        for(int i = 0; i<positions.length; i++){
+            if(positions[i] == 0){
+                this.board[getColumnOfIndex(i)][getRowOfIndex(i)] = -1;
+            }
+        }
+    }
 
     // Converts a row, column into an index (since BDD is defined as 1-dimensional array)
     public int getIndexOfCoordinates(int row, int column){
@@ -89,33 +91,32 @@ public class Group17Logic implements IQueensLogic
         return index / this.size;
     }
 
-    private BDD verticalConstraint(){
+    /**
+    *
+    * @return a BDD which implements the vertical and horizontal constraints required for the problem
+    */
+    private BDD verticalAndHorisontalConstraint(){
         // Initialized to false. This means that when we add bdd.or(...),
         // that the evaluation of the function is dependent on the clause given.
         BDD bdd = False;
-        // Look through every column
-        for (int col = 0; col<size; col++){
-            for(int i = 0; i < size; i++){
-                for( int j = i + 1; j < size; j++){
-                    if (i != j) bdd = bdd.or(variables[getIndexOfCoordinates(i, col)].and(variables[getIndexOfCoordinates(j, col)]));
-                }
-            }
-        }
-        return bdd.not();
-    }
+        // Look through every row or column
+        for (int x = 0; x<size; x++){
 
-    private BDD horisontalConstraint(){
-        BDD bdd = False;
-        for(int row = 0; row < size; row++){
             for(int i = 0; i < size; i++){
                 for(int j = i + 1; j < size; j++){
-                    if (i != j) bdd = bdd.or(variables[getIndexOfCoordinates(row, i)].and(variables[getIndexOfCoordinates(row, j)]));
+                    if (i != j) {
+                        bdd = bdd.or(variables[getIndexOfCoordinates(i, x)].and(variables[getIndexOfCoordinates(j, x)]));
+                        bdd = bdd.or(variables[getIndexOfCoordinates(x, i)].and(variables[getIndexOfCoordinates(x, j)]));
+                    }
                 }
             }
         }
         return bdd.not();
     }
-
+    /**
+    *
+    * @return a BDD which implements the diagonal constraints required for the problem
+    */
     private BDD diagonalConstraint(){
         BDD bdd = False;
 
@@ -129,41 +130,41 @@ public class Group17Logic implements IQueensLogic
                 for(int j = i + 1; j < spaces; j++){
                     if (i != j){
                         // / diagonals
+                        //Upper half
                         bdd = bdd.or(variables[getIndexOfCoordinates(diagonal - i, i)].and(variables[getIndexOfCoordinates(diagonal - j, j)]));
+                        //Lower half
                         bdd = bdd.or(variables[getIndexOfCoordinates(size - 1 - i, size - 1 - diagonal + i)].and(variables[getIndexOfCoordinates(size - 1 - j, size - 1 - diagonal + j)]));
+
                         // \ diagonals
-                        bdd = bdd.or(variables[getIndexOfCoordinates(diagonal - i, size - 1 - j)].and(variables[getIndexOfCoordinates(diagonal - j, size - 1 - j)]));
-                        bdd = bdd.or(variables[getIndexOfCoordinates(diagonal - i, size - 1 - j)].and(variables[getIndexOfCoordinates(diagonal - j, size - 1 - j)]));
+                        //Upper half
+                        bdd = bdd.or(variables[getIndexOfCoordinates(diagonal - i, size - 1 - i)].and(variables[getIndexOfCoordinates(diagonal - j, size - 1 - j)]));
+                        //Lower half
+                        bdd = bdd.or(variables[getIndexOfCoordinates(size - 1 - diagonal + i, i)].and(variables[getIndexOfCoordinates(size - 1 - diagonal + j, j)]));
                     }
                 }
             }
         }
-
         return bdd.not();
     }
 
-
-    //TODO: Ændre
-    private BDD queenInEveryColumnConstraint(){
-        BDD bdd = False;
-        BDD bdd2 = True;
-        BDD bdd3 = True;
-        for(int i = 0; i < size; i++){
-            for(int j = i*size; j < size+i*size; j++){
-                bdd = bdd.or(variables[i]);
+    private BDD queenInEveryRowConstraint(){
+        BDD sumbdd = True;
+        for(int row = 0; row < size; row++){
+            BDD bdd = False;
+            for(int col = 0; col < size; col++){
+                bdd = bdd.or(variables[getIndexOfCoordinates(row, col)]);
             }
-            bdd2 = True;
-            bdd2 = bdd2.and(bdd);
-            bdd = False;
-            bdd3 = bdd3.and(bdd2);
+            sumbdd = sumbdd.and(bdd);
         }
-        root = root.and(bdd3);
-        return bdd;
+        return sumbdd;
     }
 
+    // the function to insert a queen on the board
     public void insertQueen(int column, int row) {
         if (this.board[column][row] != 0) return;
-        this.board[column][row] = 1;
+        BDD queen = variables[getIndexOfCoordinates(row, column)];
+        root = root.restrict(queen);
         updatePositions();
+        this.board[column][row] = 1;
     }
 }
