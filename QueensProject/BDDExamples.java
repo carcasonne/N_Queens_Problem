@@ -60,7 +60,7 @@ public class BDDExamples {
 		fact.printTable(restricted_b3);
 		System.out.println("restricted_b3 is the same as b3?: " + restricted_b3.equals(b3) );
 		
-		// Lastly notice, that there are version of many of the above mentioned methods (e.g. 'or')
+		// Lastly notice, that there are version of many of the above-mentioned methods (e.g. 'or')
 		// that ends with "With". The latter methods transforms/consumes the calling BDD 
 		// instead of returning a new BDD
 	}

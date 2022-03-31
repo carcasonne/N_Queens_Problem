@@ -12,7 +12,7 @@ public interface IQueensLogic {
 	 * of the n-queen problem.
 	 * @param size The size of the board ( i.e. size = #rows = #columns)
 	 */
-	public void initializeBoard(int size);
+	void initializeBoard(int size);
 	
 	/**
 	 * Return a representation of the board where each entry [c][r] is either 
@@ -23,11 +23,11 @@ public interface IQueensLogic {
 	 * Columns are counted from left to right (starting with 0), 
 	 * and rows are counted from top to bottom (counting from 0).   
 	 */
-	public int[][] getBoard();
+	int[][] getBoard();
 	
 	/**
 	 * Inserts a queen at the specified position and updates the rest of the board accordingly,
 	 * that is afterwards the board specifies where there _must_ be queens and where there _cannot_ be queens.  
 	 */
-	public void insertQueen(int column, int row);
+	void insertQueen(int column, int row);
 }
