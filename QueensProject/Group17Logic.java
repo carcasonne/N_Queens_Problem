@@ -50,6 +50,15 @@ public class Group17Logic implements IQueensLogic
         return board;
     }
 
+    // the function to insert a queen on the board
+    public void insertQueen(int column, int row) {
+        if (this.board[column][row] != 0) return;
+        BDD queen = variables[getIndexOfCoordinates(row, column)];
+        root = root.restrict(queen);
+        updatePositions();
+        this.board[column][row] = 1;
+    }
+
     /**
      * @return positions with values indicating if it is possible to place a queen.
      */
@@ -160,16 +169,5 @@ public class Group17Logic implements IQueensLogic
             sumbdd = sumbdd.and(bdd);
         }
         return sumbdd;
-    }
-
-    // the function to insert a queen on the board
-    public void insertQueen(int column, int row) {
-        if (this.board[column][row] != 0) return;
-        BDD queen = variables[getIndexOfCoordinates(row, column)];
-        root = root.restrict(queen);
-        updatePositions();
-        this.board[column][row] = 1;
-
-
     }
 }
