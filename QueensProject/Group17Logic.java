@@ -33,7 +33,6 @@ public class Group17Logic implements IQueensLogic
         // this means the BDD's we apply the AND operator with must also be true for root to be true.
         // So the entire tree is only true if each and every of the constraints are true
         root = root.and(verticalAndHorisontalConstraint());
-        //root = root.and(horisontalConstraint());
         root = root.and(queenInEveryRowConstraint());
         root = root.and(diagonalConstraint());
 
