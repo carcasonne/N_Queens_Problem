@@ -12,7 +12,7 @@ public class Group17Logic implements IQueensLogic
     private final BDDFactory factory = JFactory.init(5_000_000, 500_000); //The BDD Factory to initialize nodes and cache
     private BDD True = factory.one(); // the True BDD - makes life easier to define as a field
     private BDD False = factory.zero(); //the False BDD - makes life easier to define as a field
-    BDD root;
+    BDD root; // The root BDD
 
     //The function for initializing the board. It takes the board size as a parameter.
 
@@ -29,7 +29,7 @@ public class Group17Logic implements IQueensLogic
         }
 
         // Add the constraints to the root tree
-        // Since root is initialzied to True,
+        // Since root is initialized to True,
         // this means the BDD's we apply the AND operator with must also be true for root to be true.
         // So the entire tree is only true if each and every of the constraints are true
         root = root.and(verticalAndHorisontalConstraint());
@@ -50,7 +50,7 @@ public class Group17Logic implements IQueensLogic
         return board;
     }
 
-    // the function to insert a queen on the board
+    // The function to insert a queen on the board
     public void insertQueen(int column, int row) {
         if (this.board[column][row] != 0) return;
         BDD queen = variables[getIndexOfCoordinates(row, column)];
@@ -105,7 +105,7 @@ public class Group17Logic implements IQueensLogic
 
     /**
     *
-    * @return a BDD which implements the vertical and horizontal constraints required for the problem
+    * @return a BDD which imposes the vertical and horizontal constraints required for the problem
     */
     private BDD verticalAndHorisontalConstraint(){
         // Initialized to false. This means that when we add bdd.or(...),
@@ -113,7 +113,6 @@ public class Group17Logic implements IQueensLogic
         BDD bdd = False;
         // Look through every row or column
         for (int x = 0; x<size; x++){
-
             for(int i = 0; i < size; i++){
                 for(int j = i + 1; j < size; j++){
                     if (i != j) {
@@ -127,7 +126,7 @@ public class Group17Logic implements IQueensLogic
     }
     /**
     *
-    * @return a BDD which implements the diagonal constraints required for the problem
+    * @return a BDD which imposes the diagonal constraints required for the problem
     */
     private BDD diagonalConstraint(){
         BDD bdd = False;
@@ -158,7 +157,10 @@ public class Group17Logic implements IQueensLogic
         }
         return bdd.not();
     }
-
+    /**
+     *
+     * @return a BDD which imposes the constraint of there being a queen on every row on the board.
+     */
     private BDD queenInEveryRowConstraint(){
         BDD sumbdd = True;
         for(int row = 0; row < size; row++){
